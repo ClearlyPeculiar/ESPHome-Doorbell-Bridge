@@ -28,15 +28,15 @@ globals:
   - id: silent_mode_enabled
     type: bool
     restore_value: yes
-    initial_value: false
+    initial_value: 'false'
   - id: ring_duration_ms
     type: int
     restore_value: yes
-    initial_value: 500
+    initial_value: '500'
   - id: post_ring_delay_ms
     type: int
     restore_value: yes
-    initial_value: 1000
+    initial_value: '1000'
 
 # Visual indicator for device status and connectivity.
 status_led:
