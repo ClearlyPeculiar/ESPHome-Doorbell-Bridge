@@ -19,6 +19,12 @@ esphome:
   name: doorbell-bridge
   friendly_name: Doorbell Bridge
 
+# Define your pinout here
+substitutions:
+  button_pin: GPIO2
+  relay_pin: GPIO0
+  status_led_pin: GPIO1
+
 esp8266:
   board: esp01_1m
 
