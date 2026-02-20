@@ -5,6 +5,10 @@ substitutions:
   relay_pin: GPIO0
   status_led_pin: GPIO1
 
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
 # Enable logging via Serial and Web.
 # Baud rate 0 allows GPIO1 to be used as a Status LED.
 logger:
@@ -24,15 +28,15 @@ globals:
   - id: silent_mode_enabled
     type: bool
     restore_value: yes
-    initial_value: 'false'
+    initial_value: false
   - id: ring_duration_ms
     type: int
     restore_value: yes
-    initial_value: '500'
+    initial_value: 500
   - id: post_ring_delay_ms
     type: int
     restore_value: yes
-    initial_value: '1000'
+    initial_value: 1000
 
 # Visual indicator for device status and connectivity.
 status_led:
@@ -54,10 +58,12 @@ binary_sensor:
       then:
         - text_sensor.template.publish:
             id: last_press_time
-            state: !lambda 'return id(sntp_time).now().strftime("%Y-%m-%d %H:%M:%S");'
+            state: !lambda |-
+              return id(sntp_time).now().strftime("%Y-%m-%d %H:%M:%S");
         - if:
             condition:
-              lambda: 'return !id(silent_mode_enabled);'
+              lambda: |-
+                return !id(silent_mode_enabled);
             then:
               - switch.turn_on: chime_relay
             else:
@@ -96,12 +102,13 @@ number:
     max_value: 500
     step: 50
     icon: "mdi:timer-sand"
-    lambda: "return id(ring_duration_ms);"
+    lambda: |-
+      return id(ring_duration_ms);
     set_action:
       - globals.set:
           id: ring_duration_ms
           value: !lambda "return x;"
-  
+
   - platform: template
     name: "Post-Chime Delay"
     id: post_chime_delay_setting
@@ -111,7 +118,8 @@ number:
     max_value: 1000
     step: 100
     icon: "mdi:timer-off-outline"
-    lambda: "return id(post_ring_delay_ms);"
+    lambda: |-
+      return id(post_ring_delay_ms);
     set_action:
       - globals.set:
           id: post_ring_delay_ms
@@ -145,15 +153,16 @@ switch:
     name: "Silent Mode"
     id: silent_mode_switch
     icon: "mdi:bell-off"
-    lambda: 'return id(silent_mode_enabled);'
+    lambda: |-
+      return id(silent_mode_enabled);
     turn_on_action:
       - globals.set:
           id: silent_mode_enabled
-          value: 'true'
+          value: true
     turn_off_action:
       - globals.set:
           id: silent_mode_enabled
-          value: 'false'
+          value: false
 
 button:
   - platform: restart
