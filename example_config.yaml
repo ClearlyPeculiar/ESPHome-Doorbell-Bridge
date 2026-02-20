@@ -1,0 +1,35 @@
+esphome:
+  name: my-doorbell
+  friendly_name: My Doorbell
+  # Optional: Override pins if needed
+  # substitutions:
+  #   button_pin: GPIO2
+  #   relay_pin: GPIO0
+
+esp8266:
+  board: esp01_1m
+
+# Import the core logic directly from GitHub
+packages:
+  doorbell_logic:
+    url: https://github.com/ClearlyPeculiar/ESPHome-Doorbell-Bridge
+    file: doorbell-bridge.yaml
+    refresh: 1d
+
+# Your sensitive local configuration
+wifi:
+  ssid: "YOUR_WIFI_SSID"
+  password: "YOUR_WIFI_PASSWORD"
+  ap:
+    ssid: "Doorbell Fallback"
+    password: ""
+
+api:
+  encryption:
+    key: "YOUR_ENCRYPTION_KEY"
+
+ota:
+  - platform: esphome
+    password: "YOUR_OTA_PASSWORD"
+
+captive_portal:

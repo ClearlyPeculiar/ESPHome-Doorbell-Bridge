@@ -1,0 +1,163 @@
+substitutions:
+  device_name: doorbell-bridge
+  friendly_name: Doorbell Bridge
+  button_pin: GPIO2
+  relay_pin: GPIO0
+  status_led_pin: GPIO1
+
+# Enable logging via Serial and Web.
+# Baud rate 0 allows GPIO1 to be used as a Status LED.
+logger:
+  baud_rate: 0
+
+# Web server for local control and detailed telemetry (Port 80).
+web_server:
+  port: 80
+
+# Time component needed for accurate timestamping of events.
+time:
+  - platform: sntp
+    id: sntp_time
+
+# Global variables for state that should persist across reboots.
+globals:
+  - id: silent_mode_enabled
+    type: bool
+    restore_value: yes
+    initial_value: 'false'
+  - id: ring_duration_ms
+    type: int
+    restore_value: yes
+    initial_value: '500'
+  - id: post_ring_delay_ms
+    type: int
+    restore_value: yes
+    initial_value: '1000'
+
+# Visual indicator for device status and connectivity.
+status_led:
+  pin: ${status_led_pin}
+
+binary_sensor:
+  # Physical Doorbell Button.
+  - platform: gpio
+    pin:
+      number: ${button_pin}
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "Doorbell Button"
+    id: doorbell_button
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
+    on_press:
+      then:
+        - text_sensor.template.publish:
+            id: last_press_time
+            state: !lambda 'return id(sntp_time).now().strftime("%Y-%m-%d %H:%M:%S");'
+        - if:
+            condition:
+              lambda: 'return !id(silent_mode_enabled);'
+            then:
+              - switch.turn_on: chime_relay
+            else:
+              - logger.log: "Doorbell pressed, but Chime is in SILENT MODE."
+
+  # Connection status binary sensor.
+  - platform: status
+    name: "Home Assistant Status"
+    id: ha_status
+
+# Track system diagnostics.
+debug:
+  update_interval: 60s
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: device_uptime
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_rssi
+
+  - platform: debug
+    free:
+      name: "Free Heap"
+      id: device_free_heap
+
+number:
+  - platform: template
+    name: "Chime Ring Duration"
+    id: chime_duration_setting
+    entity_category: config
+    unit_of_measurement: "ms"
+    min_value: 50
+    max_value: 500
+    step: 50
+    icon: "mdi:timer-sand"
+    lambda: "return id(ring_duration_ms);"
+    set_action:
+      - globals.set:
+          id: ring_duration_ms
+          value: !lambda "return x;"
+  
+  - platform: template
+    name: "Post-Chime Delay"
+    id: post_chime_delay_setting
+    entity_category: config
+    unit_of_measurement: "ms"
+    min_value: 0
+    max_value: 1000
+    step: 100
+    icon: "mdi:timer-off-outline"
+    lambda: "return id(post_ring_delay_ms);"
+    set_action:
+      - globals.set:
+          id: post_ring_delay_ms
+          value: !lambda "return x;"
+
+text_sensor:
+  - platform: template
+    name: "Last Doorbell Press"
+    id: last_press_time
+    icon: "mdi:clock-history"
+
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+
+switch:
+  - platform: gpio
+    pin:
+      number: ${relay_pin}
+      inverted: true
+    name: "Chime Relay"
+    id: chime_relay
+    icon: "mdi:bell-ring"
+    restore_mode: ALWAYS_OFF
+    on_turn_on:
+      - delay: !lambda "return id(ring_duration_ms);"
+      - switch.turn_off: chime_relay
+      - delay: !lambda "return id(post_ring_delay_ms);"
+
+  - platform: template
+    name: "Silent Mode"
+    id: silent_mode_switch
+    icon: "mdi:bell-off"
+    lambda: 'return id(silent_mode_enabled);'
+    turn_on_action:
+      - globals.set:
+          id: silent_mode_enabled
+          value: 'true'
+    turn_off_action:
+      - globals.set:
+          id: silent_mode_enabled
+          value: 'false'
+
+button:
+  - platform: restart
+    name: "Restart Device"
+    id: device_restart
+    icon: "mdi:restart"
+    entity_category: config
