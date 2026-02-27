@@ -46,7 +46,7 @@ binary_sensor:
 script:
   # Script to handle the chime ring sequence and lockout.
   - id: ring_chime
-    mode: exclusive # Prevents overlapping executions (lockout)
+    mode: single # Prevents overlapping executions (lockout)
     then:
       - switch.turn_on: chime_relay_physical
       - delay: !lambda "return id(ring_duration_ms);"
