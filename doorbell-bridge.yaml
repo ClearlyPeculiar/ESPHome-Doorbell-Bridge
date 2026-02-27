@@ -53,36 +53,57 @@ script:
       - switch.turn_off: chime_relay_physical
       - delay: !lambda "return id(post_ring_delay_ms);"
 
-number:
+select:
   - platform: template
     name: "Chime Ring Duration"
     entity_category: config
-    unit_of_measurement: "ms"
-    min_value: 50
-    max_value: 500
-    step: 50
     icon: "mdi:timer-sand"
+    options:
+      - "50ms"
+      - "100ms"
+      - "200ms"
+      - "300ms"
+      - "500ms"
+    initial_option: "200ms"
     lambda: |-
-      return id(ring_duration_ms);
+      if (id(ring_duration_ms) <= 50) return {"50ms"};
+      if (id(ring_duration_ms) <= 100) return {"100ms"};
+      if (id(ring_duration_ms) <= 200) return {"200ms"};
+      if (id(ring_duration_ms) <= 300) return {"300ms"};
+      return {"500ms"};
     set_action:
       - globals.set:
           id: ring_duration_ms
-          value: !lambda "return x;"
+          value: !lambda |-
+            if (x == "50ms") return 50;
+            if (x == "100ms") return 100;
+            if (x == "200ms") return 200;
+            if (x == "300ms") return 300;
+            return 500;
 
   - platform: template
     name: "Post-Chime Delay"
     entity_category: config
-    unit_of_measurement: "ms"
-    min_value: 0
-    max_value: 1000
-    step: 100
     icon: "mdi:timer-off-outline"
+    options:
+      - "0ms"
+      - "200ms"
+      - "500ms"
+      - "1000ms"
+    initial_option: "500ms"
     lambda: |-
-      return id(post_ring_delay_ms);
+      if (id(post_ring_delay_ms) <= 0) return {"0ms"};
+      if (id(post_ring_delay_ms) <= 200) return {"200ms"};
+      if (id(post_ring_delay_ms) <= 500) return {"500ms"};
+      return {"1000ms"};
     set_action:
       - globals.set:
           id: post_ring_delay_ms
-          value: !lambda "return x;"
+          value: !lambda |-
+            if (x == "0ms") return 0;
+            if (x == "200ms") return 200;
+            if (x == "500ms") return 500;
+            return 1000;
 
 switch:
   - platform: gpio

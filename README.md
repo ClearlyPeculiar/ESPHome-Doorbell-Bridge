@@ -6,7 +6,7 @@ This project provides an ESPHome-based configuration for an ESP-01S relay module
 - **Doorbell Press Detection**: Monitors a physical button on **GPIO2**.
 - **Chime Control**: Operates a physical chime via the relay on **GPIO0**.
 - **Home Assistant Integration**: Manually trigger the chime or toggle "Silent Mode" directly from HA.
-- **Configurable Timing**: Adjust "Ring Duration" and "Post-Chime Delay" via HA sliders.
+- **Configurable Timing**: Adjust "Ring Duration" and "Post-Chime Delay" via HA dropdown menus.
 - **Robust Lockout**: Prevents rapid re-triggering (spamming) of the physical chime.
 - **Silent Mode**: Decouples the button from the chime (allowing notifications without sound).
 - **Remote Package Support**: Can be easily imported into your local config while keeping sensitive data private.
