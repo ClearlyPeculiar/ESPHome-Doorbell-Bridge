@@ -1,16 +1,10 @@
 # Enable logging via Serial and Web.
-# Baud rate 0 allows GPIO1 to be used as a Status LED.
 logger:
-  baud_rate: 0
+  baud_rate: 
 
 # Web server for local control and detailed telemetry (Port 80).
 web_server:
   port: 80
-
-# Time component needed for accurate timestamping of events.
-time:
-  - platform: sntp
-    id: sntp_time
 
 # Global variables for state that should persist across reboots.
 globals:
@@ -21,15 +15,11 @@ globals:
   - id: ring_duration_ms
     type: int
     restore_value: yes
-    initial_value: "500"
+    initial_value: "200"
   - id: post_ring_delay_ms
     type: int
     restore_value: yes
-    initial_value: "1000"
-
-# Visual indicator for device status and connectivity.
-status_led:
-  pin: ${status_led_pin}
+    initial_value: "500"
 
 binary_sensor:
   # Physical Doorbell Button.
@@ -45,10 +35,6 @@ binary_sensor:
       - delayed_off: 50ms
     on_press:
       then:
-        - text_sensor.template.publish:
-            id: last_press_time
-            state: !lambda |-
-              return id(sntp_time).now().strftime("%Y-%m-%d %H:%M:%S");
         - if:
             condition:
               lambda: |-
@@ -57,29 +43,6 @@ binary_sensor:
               - switch.turn_on: chime_relay
             else:
               - logger.log: "Doorbell pressed, but Chime is in SILENT MODE."
-
-  # Connection status binary sensor.
-  - platform: status
-    name: "Home Assistant Status"
-    id: ha_status
-
-# Track system diagnostics.
-debug:
-  update_interval: 60s
-
-sensor:
-  - platform: uptime
-    name: "Uptime"
-    id: device_uptime
-
-  - platform: wifi_signal
-    name: "WiFi Signal"
-    id: wifi_rssi
-
-  - platform: debug
-    free:
-      name: "Free Heap"
-      id: device_free_heap
 
 number:
   - platform: template
@@ -114,16 +77,6 @@ number:
           id: post_ring_delay_ms
           value: !lambda "return x;"
 
-text_sensor:
-  - platform: template
-    name: "Last Doorbell Press"
-    id: last_press_time
-    icon: "mdi:clock-history"
-
-  - platform: wifi_info
-    ip_address:
-      name: "IP Address"
-
 switch:
   - platform: gpio
     pin:
@@ -152,10 +105,3 @@ switch:
       - globals.set:
           id: silent_mode_enabled
           value: "false"
-
-button:
-  - platform: restart
-    name: "Restart Device"
-    id: device_restart
-    icon: "mdi:restart"
-    entity_category: config
