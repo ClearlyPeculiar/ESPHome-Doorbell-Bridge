@@ -1,6 +1,6 @@
 # Enable logging via Serial and Web.
 logger:
-  baud_rate: 
+  baud_rate: 0
 
 # Web server for local control and detailed telemetry (Port 80).
 web_server:
