@@ -7,6 +7,7 @@ This project provides an ESPHome-based configuration for an ESP-01S relay module
 - **Chime Control**: Operates a physical chime via the relay on **GPIO0**.
 - **Home Assistant Integration**: Manually trigger the chime or toggle "Silent Mode" directly from HA.
 - **Configurable Timing**: Adjust "Ring Duration" and "Post-Chime Delay" via HA sliders.
+- **Robust Lockout**: Prevents rapid re-triggering (spamming) of the physical chime.
 - **Silent Mode**: Decouples the button from the chime (allowing notifications without sound).
 - **Remote Package Support**: Can be easily imported into your local config while keeping sensitive data private.
 
@@ -23,7 +24,6 @@ esphome:
 substitutions:
   button_pin: GPIO2
   relay_pin: GPIO0
-  status_led_pin: GPIO1
 
 esp8266:
   board: esp01_1m
@@ -60,16 +60,14 @@ captive_portal:
 ### 🎮 Controls
 - **Chime Relay**: Manual trigger for the physical chime (automatically pulses).
 - **Silent Mode**: Toggle to enable/disable the physical chime while keeping notifications active.
-- **Restart Device**: Button to remotely reboot the ESP-01S.
 
 ### ⚙️ Configuration
-- **Chime Ring Duration**: Duration the relay remains active (Default: 500ms).
-- **Post-Chime Delay**: Minimum wait time between rings to prevent hardware strain (Default: 1000ms).
+- **Chime Ring Duration**: Duration the relay remains active (Default: 200ms).
+- **Post-Chime Delay**: Minimum wait time between rings to prevent hardware strain (Default: 500ms).
 
 ## 📋 Pinout Reference (Configurable via Substitutions)
 - **button_pin**: `GPIO2` (Doorbell Button)
 - **relay_pin**: `GPIO0` (Chime Relay)
-- **status_led_pin**: `GPIO1` (Blue LED)
 
 ## 🚀 Flashing Instructions
 1. **Prepare ESPHome**:
