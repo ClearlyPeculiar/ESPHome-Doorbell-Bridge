@@ -29,7 +29,6 @@ binary_sensor:
       mode: INPUT_PULLUP
       inverted: true
     name: "Doorbell Button"
-    id: doorbell_button
     filters:
       - delayed_on: 50ms
       - delayed_off: 50ms
@@ -40,14 +39,23 @@ binary_sensor:
               lambda: |-
                 return !id(silent_mode_enabled);
             then:
-              - switch.turn_on: chime_relay
+              - script.execute: ring_chime
             else:
               - logger.log: "Doorbell pressed, but Chime is in SILENT MODE."
+
+script:
+  # Script to handle the chime ring sequence and lockout.
+  - id: ring_chime
+    mode: exclusive # Prevents overlapping executions (lockout)
+    then:
+      - switch.turn_on: chime_relay_physical
+      - delay: !lambda "return id(ring_duration_ms);"
+      - switch.turn_off: chime_relay_physical
+      - delay: !lambda "return id(post_ring_delay_ms);"
 
 number:
   - platform: template
     name: "Chime Ring Duration"
-    id: chime_duration_setting
     entity_category: config
     unit_of_measurement: "ms"
     min_value: 50
@@ -63,7 +71,6 @@ number:
 
   - platform: template
     name: "Post-Chime Delay"
-    id: post_chime_delay_setting
     entity_category: config
     unit_of_measurement: "ms"
     min_value: 0
@@ -82,18 +89,22 @@ switch:
     pin:
       number: ${relay_pin}
       inverted: true
-    name: "Chime Relay"
-    id: chime_relay
-    icon: "mdi:bell-ring"
+    id: chime_relay_physical
+    internal: true
     restore_mode: ALWAYS_OFF
-    on_turn_on:
-      - delay: !lambda "return id(ring_duration_ms);"
-      - switch.turn_off: chime_relay
-      - delay: !lambda "return id(post_ring_delay_ms);"
+
+  - platform: template
+    name: "Chime Relay"
+    icon: "mdi:bell-ring"
+    lambda: "return id(ring_chime).is_running();"
+    turn_on_action:
+      - script.execute: ring_chime
+    turn_off_action:
+      - script.stop: ring_chime
+      - switch.turn_off: chime_relay_physical
 
   - platform: template
     name: "Silent Mode"
-    id: silent_mode_switch
     icon: "mdi:bell-off"
     lambda: |-
       return id(silent_mode_enabled);
