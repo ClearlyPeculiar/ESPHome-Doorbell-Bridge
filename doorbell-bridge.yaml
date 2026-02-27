@@ -64,7 +64,6 @@ select:
       - "200ms"
       - "300ms"
       - "500ms"
-    initial_option: "200ms"
     lambda: |-
       if (id(ring_duration_ms) <= 50) return {"50ms"};
       if (id(ring_duration_ms) <= 100) return {"100ms"};
@@ -90,7 +89,6 @@ select:
       - "200ms"
       - "500ms"
       - "1000ms"
-    initial_option: "500ms"
     lambda: |-
       if (id(post_ring_delay_ms) <= 0) return {"0ms"};
       if (id(post_ring_delay_ms) <= 200) return {"200ms"};
